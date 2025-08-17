@@ -7,7 +7,6 @@ export const Media: CollectionConfig = {
     plural: 'Media',
   },
   upload: {
-    staticURL: '/media',
     staticDir: 'media',
     // You’ll replace this with Supabase Storage adapter later
     mimeTypes: ['image/*'],
