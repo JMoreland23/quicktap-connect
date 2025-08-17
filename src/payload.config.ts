@@ -16,6 +16,12 @@ import { Header } from './Header/config'
 import { plugins } from './plugins'
 import { defaultLexical } from '@/fields/defaultLexical'
 import { getServerSideURL } from './utilities/getURL'
+import { Products } from './collections/Products'
+
+
+import { s3Storage } from '@payloadcms/storage-s3'
+
+
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -28,7 +34,7 @@ export default buildConfig({
       beforeLogin: ['@/components/BeforeLogin'],
       // The `BeforeDashboard` component renders the 'welcome' block that you see after logging into your admin panel.
       // Feel free to delete this at any time. Simply remove the line below.
-      beforeDashboard: ['@/components/BeforeDashboard'],
+      // beforeDashboard: ['@/components/BeforeDashboard'],
     },
     importMap: {
       baseDir: path.resolve(dirname),
@@ -64,12 +70,31 @@ export default buildConfig({
       connectionString: process.env.DATABASE_URI || '',
     },
   }),
-  collections: [Pages, Posts, Media, Categories, Users],
+  collections: [Pages, Posts, Products, Media, Categories, Users],
   cors: [getServerSideURL()].filter(Boolean),
   globals: [Header, Footer],
   plugins: [
     ...plugins,
-    // storage-adapter-placeholder
+    s3Storage({
+      // which upload collections use this storage:
+      collections: {
+        media: true,
+      },
+      // your Supabase bucket name
+      bucket: process.env.S3_BUCKET as string,
+      // AWS SDK v3 S3ClientConfig (works with Supabase's S3 endpoint)
+      config: {
+        endpoint: process.env.S3_ENDPOINT,             // e.g. https://<project-ref>.supabase.co/storage/v1/s3
+        region: process.env.S3_REGION,                 // any string; e.g. 'us-east-1'
+        forcePathStyle: true,                          // important for many S3-compatible providers
+        credentials: {
+          accessKeyId: process.env.S3_ACCESS_KEY_ID as string,
+          secretAccessKey: process.env.S3_SECRET_ACCESS_KEY as string,
+        },
+      },
+      // optional: use presigned URLs for downloads of large/private files
+      // signedDownloads: true,
+    }),
   ],
   secret: process.env.PAYLOAD_SECRET,
   sharp,
